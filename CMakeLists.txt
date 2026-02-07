@@ -25,6 +25,7 @@ include_directories(
 # Source files
 set(SOURCES
     main.cpp
+    sample_bank.cpp
 )
 
 # Create executable
@@ -38,3 +39,7 @@ target_link_libraries(grids-jack
 
 # Add compiler flags from pkg-config
 target_compile_options(grids-jack PUBLIC ${JACK_CFLAGS_OTHER} ${SNDFILE_CFLAGS_OTHER})
+
+# Test executable (doesn't require JACK server to be running)
+add_executable(test_sample_bank test_sample_bank.cpp sample_bank.cpp)
+target_link_libraries(test_sample_bank ${SNDFILE_LIBRARIES})

@@ -20,11 +20,16 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "sample_bank.h"
+
 // Global flag for shutdown
 static volatile bool g_should_exit = false;
 
 // JACK client handle
 static jack_client_t* g_jack_client = nullptr;
+
+// Sample bank
+static grids_jack::SampleBank g_sample_bank;
 
 // Configuration
 struct Config {
@@ -148,7 +153,7 @@ bool parse_args(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     fprintf(stderr, "grids-jack: JACK audio client with Grids pattern generator\n");
-    fprintf(stderr, "Phase 1: Basic initialization (JACK stub)\n\n");
+    fprintf(stderr, "Phase 2: Sample Bank Implementation\n\n");
     
     // Parse command-line arguments
     if (!parse_args(argc, argv)) {
@@ -172,6 +177,29 @@ int main(int argc, char* argv[]) {
     }
     
     fprintf(stderr, "JACK client initialized successfully\n");
+    
+    // Get JACK sample rate for sample loading
+    jack_nframes_t sample_rate = jack_get_sample_rate(g_jack_client);
+    
+    // Load samples from directory
+    fprintf(stderr, "\n");
+    if (!g_sample_bank.LoadDirectory(g_config.sample_directory, sample_rate)) {
+        fprintf(stderr, "Error: No samples could be loaded\n");
+        cleanup_jack();
+        return 1;
+    }
+    
+    // Display loaded samples
+    std::vector<uint8_t> notes = g_sample_bank.GetAllNotes();
+    fprintf(stderr, "\nLoaded %zu samples with MIDI notes: ", notes.size());
+    for (size_t i = 0; i < notes.size(); i++) {
+        fprintf(stderr, "%u", notes[i]);
+        if (i < notes.size() - 1) {
+            fprintf(stderr, ", ");
+        }
+    }
+    fprintf(stderr, "\n\n");
+    
     fprintf(stderr, "Press Ctrl+C to exit\n\n");
     
     // Main loop - wait for shutdown signal
