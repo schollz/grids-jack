@@ -69,7 +69,7 @@ bool init_jack() {
     // Open JACK client
     g_jack_client = jack_client_open(g_config.client_name, JackNullOption, &status);
     if (g_jack_client == nullptr) {
-        fprintf(stderr, "Failed to open JACK client: status = 0x%2.0x\n", status);
+        fprintf(stderr, "Failed to open JACK client: status = 0x%x\n", status);
         if (status & JackServerFailed) {
             fprintf(stderr, "Unable to connect to JACK server\n");
         }
@@ -128,7 +128,7 @@ bool parse_args(int argc, char* argv[]) {
             case 'b':
                 g_config.bpm = atof(optarg);
                 if (g_config.bpm <= 0.0f || g_config.bpm > 300.0f) {
-                    fprintf(stderr, "Error: BPM must be between 0 and 300\n");
+                    fprintf(stderr, "Error: BPM must be greater than 0 and at most 300\n");
                     return false;
                 }
                 break;
