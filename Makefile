@@ -8,7 +8,7 @@ BUILD_DIR := build
 BINARY := grids-jack
 
 # CMake generator (can be overridden)
-CMAKE_GENERATOR ?= "Unix Makefiles"
+CMAKE_GENERATOR ?= Unix Makefiles
 
 # Default target
 .PHONY: all
@@ -29,7 +29,7 @@ check-deps:
 configure: check-deps
 	@if [ ! -d "$(BUILD_DIR)" ]; then \
 		echo "Configuring CMake..."; \
-		cmake -S . -B $(BUILD_DIR) -G $(CMAKE_GENERATOR); \
+		cmake -S . -B $(BUILD_DIR) -G "$(CMAKE_GENERATOR)"; \
 	fi
 
 # Build the project
@@ -61,9 +61,9 @@ clean:
 .PHONY: distclean
 distclean: clean
 	@echo "Removing all generated files..."
-	@find . -name "CMakeCache.txt" -delete
-	@find . -name "CMakeFiles" -type d -exec rm -rf {} + 2>/dev/null || true
-	@find . -name "cmake_install.cmake" -delete
+	@find . -maxdepth 2 -name "CMakeCache.txt" -delete
+	@find . -maxdepth 2 -type d -name "CMakeFiles" -prune -exec rm -rf {} + 2>/dev/null || true
+	@find . -maxdepth 2 -name "cmake_install.cmake" -delete
 	@echo "Deep clean complete."
 
 # Help target
