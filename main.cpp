@@ -14,6 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <jack/jack.h>
+#include <errno.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -270,21 +271,34 @@ int main(int argc, char* argv[]) {
     if (ports != nullptr) {
         // Connect left channel
         if (ports[0] != nullptr) {
-            if (jack_connect(g_jack_client,
-                           jack_port_name(g_output_port_left),
-                           ports[0]) == 0) {
+            int result = jack_connect(g_jack_client,
+                                     jack_port_name(g_output_port_left),
+                                     ports[0]);
+            if (result == 0) {
                 fprintf(stderr, "Auto-connected output_L to %s\n", ports[0]);
+            } else if (result == EEXIST) {
+                fprintf(stderr, "output_L already connected to %s\n", ports[0]);
+            } else {
+                fprintf(stderr, "Failed to auto-connect output_L to %s (error %d)\n", ports[0], result);
             }
         }
         // Connect right channel
         if (ports[1] != nullptr) {
-            if (jack_connect(g_jack_client,
-                           jack_port_name(g_output_port_right),
-                           ports[1]) == 0) {
+            int result = jack_connect(g_jack_client,
+                                     jack_port_name(g_output_port_right),
+                                     ports[1]);
+            if (result == 0) {
                 fprintf(stderr, "Auto-connected output_R to %s\n", ports[1]);
+            } else if (result == EEXIST) {
+                fprintf(stderr, "output_R already connected to %s\n", ports[1]);
+            } else {
+                fprintf(stderr, "Failed to auto-connect output_R to %s (error %d)\n", ports[1], result);
             }
         }
         jack_free(ports);
+    } else {
+        fprintf(stderr, "No physical playback ports found - skipping auto-connection\n");
+        fprintf(stderr, "You may need to manually connect ports using qjackctl or jack_connect\n");
     }
     
     fprintf(stderr, "\nPress Ctrl+C to exit\n\n");
