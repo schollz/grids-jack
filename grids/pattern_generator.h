@@ -164,6 +164,7 @@ class PatternGenerator {
     return state_;
   }
   static inline uint8_t step() { return step_; }
+  static inline void set_step(uint8_t s) { step_ = s; }
   
   static inline bool swing() { return options_.swing; }
   static int8_t swing_amount();
@@ -208,6 +209,12 @@ class PatternGenerator {
   
   static inline PatternGeneratorSettings* mutable_settings() {
     return &settings_;
+  }
+
+  // Public access to drum map level for pattern display
+  static uint8_t GetDrumMapLevel(uint8_t step, uint8_t instrument,
+                                  uint8_t x, uint8_t y) {
+    return ReadDrumMap(step, instrument, x, y);
   }
   
   static bool on_first_beat() { return first_beat_; }

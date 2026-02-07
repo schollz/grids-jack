@@ -42,7 +42,7 @@ int main() {
   grids_jack::PatternGeneratorWrapper pattern_gen;
   const float bpm = 120.0f;
   pattern_gen.Init(&player, sample_rate, bpm);
-  pattern_gen.AssignSamplesToParts(notes);
+  pattern_gen.AssignSamplesToParts(notes, 4, 32);
   
   const std::vector<grids_jack::SampleMapping>& mappings = 
       pattern_gen.GetSampleMappings();

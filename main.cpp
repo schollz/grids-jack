@@ -50,8 +50,13 @@ struct Config {
     float bpm;
     const char* client_name;
     bool verbose;
-    
-    Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack"), verbose(false) {}
+    size_t num_parts;
+    size_t num_velocity_steps;
+    bool lfo_enabled;
+
+    Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack"),
+               verbose(false), num_parts(4), num_velocity_steps(32),
+               lfo_enabled(false) {}
 };
 
 static Config g_config;
@@ -171,6 +176,9 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  -d <path>    Sample directory (default: data)\n");
     fprintf(stderr, "  -b <bpm>     Tempo in BPM (default: 120)\n");
     fprintf(stderr, "  -n <name>    JACK client name (default: grids-jack)\n");
+    fprintf(stderr, "  -s <steps>   Velocity pattern steps per sample (default: 32)\n");
+    fprintf(stderr, "  -p <parts>   Number of random samples to select (default: 4)\n");
+    fprintf(stderr, "  -l           Enable LFO drift of x/y pattern positions\n");
     fprintf(stderr, "  -v           Verbose mode - show detailed diagnostic information\n");
     fprintf(stderr, "  -h           Show this help message\n");
 }
@@ -178,7 +186,7 @@ void print_usage(const char* program_name) {
 // Parse command-line arguments
 bool parse_args(int argc, char* argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "d:b:n:vh")) != -1) {
+    while ((opt = getopt(argc, argv, "d:b:n:s:p:lvh")) != -1) {
         switch (opt) {
             case 'd':
                 g_config.sample_directory = optarg;
@@ -192,6 +200,27 @@ bool parse_args(int argc, char* argv[]) {
                 break;
             case 'n':
                 g_config.client_name = optarg;
+                break;
+            case 's': {
+                int val = atoi(optarg);
+                if (val <= 0) {
+                    fprintf(stderr, "Error: Steps must be greater than 0\n");
+                    return false;
+                }
+                g_config.num_velocity_steps = static_cast<size_t>(val);
+                break;
+            }
+            case 'p': {
+                int val = atoi(optarg);
+                if (val <= 0) {
+                    fprintf(stderr, "Error: Parts must be greater than 0\n");
+                    return false;
+                }
+                g_config.num_parts = static_cast<size_t>(val);
+                break;
+            }
+            case 'l':
+                g_config.lfo_enabled = true;
                 break;
             case 'v':
                 g_config.verbose = true;
@@ -211,16 +240,43 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "grids-jack: JACK audio client with Grids pattern generator\n");
     fprintf(stderr, "Version 1.0 - Phase 6: Polishing and Testing Complete\n\n");
     
-    // Parse command-line arguments
+    // Read environment variables first (CLI flags override these)
+    const char* env_parts = getenv("PARTS");
+    if (env_parts != nullptr) {
+        int val = atoi(env_parts);
+        if (val > 0) {
+            g_config.num_parts = static_cast<size_t>(val);
+        }
+    }
+    const char* env_steps = getenv("STEPS");
+    if (env_steps != nullptr) {
+        int val = atoi(env_steps);
+        if (val > 0) {
+            g_config.num_velocity_steps = static_cast<size_t>(val);
+        }
+    }
+    const char* env_lfo = getenv("LFO");
+    if (env_lfo != nullptr && atoi(env_lfo) == 1) {
+        g_config.lfo_enabled = true;
+    }
+    const char* env_verbose = getenv("VERBOSE");
+    if (env_verbose != nullptr && atoi(env_verbose) == 1) {
+        g_config.verbose = true;
+    }
+
+    // Parse command-line arguments (overrides env vars)
     if (!parse_args(argc, argv)) {
         return 1;
     }
-    
+
     // Display configuration
     fprintf(stderr, "Configuration:\n");
     fprintf(stderr, "  Sample directory: %s\n", g_config.sample_directory);
     fprintf(stderr, "  BPM: %.1f\n", g_config.bpm);
     fprintf(stderr, "  JACK client name: %s\n", g_config.client_name);
+    fprintf(stderr, "  Random parts: %zu\n", g_config.num_parts);
+    fprintf(stderr, "  Velocity steps: %zu\n", g_config.num_velocity_steps);
+    fprintf(stderr, "  LFO drift: %s\n", g_config.lfo_enabled ? "enabled" : "disabled");
     fprintf(stderr, "  Verbose mode: %s\n\n", g_config.verbose ? "enabled" : "disabled");
     
     // Setup signal handlers for graceful shutdown
@@ -265,8 +321,12 @@ int main(int argc, char* argv[]) {
     g_pattern_generator.Init(&g_sample_player, sample_rate, g_config.bpm);
     fprintf(stderr, "Pattern generator initialized at %.1f BPM\n", g_config.bpm);
     
+    // Enable LFO if configured
+    g_pattern_generator.SetLfoEnabled(g_config.lfo_enabled);
+
     // Assign samples to drum parts with random X/Y positions
-    g_pattern_generator.AssignSamplesToParts(notes);
+    g_pattern_generator.AssignSamplesToParts(notes, g_config.num_parts,
+                                               g_config.num_velocity_steps);
     const std::vector<grids_jack::SampleMapping>& mappings = 
         g_pattern_generator.GetSampleMappings();
     fprintf(stderr, "Selected and assigned %zu samples to drum parts (BD, SD, HH)\n", 
@@ -296,8 +356,11 @@ int main(int argc, char* argv[]) {
                 g_pattern_generator.GetPatternY(),
                 g_pattern_generator.GetRandomness());
     }
+
+    // Print initial pattern
+    g_pattern_generator.PrintCurrentPattern();
     fprintf(stderr, "\n");
-    
+
     // Activate JACK client
     if (jack_activate(g_jack_client) != 0) {
         fprintf(stderr, "Failed to activate JACK client\n");
@@ -345,9 +408,10 @@ int main(int argc, char* argv[]) {
     
     fprintf(stderr, "\nPress Ctrl+C to exit\n\n");
     
-    // Main loop - wait for shutdown signal
+    // Main loop - wait for shutdown signal, print pattern changes
     while (!g_should_exit) {
-        sleep(1);
+        g_pattern_generator.PrintPendingPattern();
+        usleep(100000);  // 100ms
     }
     
     // Cleanup

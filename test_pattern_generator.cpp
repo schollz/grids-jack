@@ -37,7 +37,7 @@ int main() {
   fprintf(stderr, "Pattern generator initialized at %.1f BPM\n\n", bpm);
   
   // Assign samples to drum parts
-  pattern_gen.AssignSamplesToParts(notes);
+  pattern_gen.AssignSamplesToParts(notes, 4, 32);
   
   fprintf(stderr, "\nProcessing pattern for 2 seconds...\n");
   fprintf(stderr, "Expected: triggers should occur at regular intervals based on Grids patterns\n\n");

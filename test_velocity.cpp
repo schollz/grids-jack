@@ -39,7 +39,7 @@ int main() {
   pattern_gen.Init(&player, sample_rate, bpm);
   
   // Assign samples to drum parts
-  pattern_gen.AssignSamplesToParts(notes);
+  pattern_gen.AssignSamplesToParts(notes, 4, 32);
   
   // Verify only 4 samples were selected (or less if fewer available)
   const std::vector<grids_jack::SampleMapping>& mappings = 
