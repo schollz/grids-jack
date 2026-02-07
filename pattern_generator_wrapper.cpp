@@ -68,8 +68,6 @@ void PatternGeneratorWrapper::AssignSamplesToParts(
     const std::vector<uint8_t>& midi_notes) {
   sample_mappings_.clear();
   
-  fprintf(stderr, "Assigning %zu samples to drum parts:\n", midi_notes.size());
-  
   for (size_t i = 0; i < midi_notes.size(); ++i) {
     SampleMapping mapping;
     mapping.midi_note = midi_notes[i];
@@ -82,19 +80,7 @@ void PatternGeneratorWrapper::AssignSamplesToParts(
     mapping.y = static_cast<uint8_t>(rand() % 256);
     
     sample_mappings_.push_back(mapping);
-    
-    const char* part_name = "BD";
-    if (mapping.drum_part == DRUM_PART_SD) {
-      part_name = "SD";
-    } else if (mapping.drum_part == DRUM_PART_HH) {
-      part_name = "HH";
-    }
-    
-    fprintf(stderr, "  Note %3u -> %s (x=%3u, y=%3u)\n",
-            mapping.midi_note, part_name, mapping.x, mapping.y);
   }
-  
-  fprintf(stderr, "\n");
 }
 
 void PatternGeneratorWrapper::SetTempo(float bpm) {

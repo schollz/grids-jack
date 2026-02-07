@@ -71,6 +71,11 @@ class PatternGeneratorWrapper {
   uint8_t GetPatternY() const;
   uint8_t GetRandomness() const;
   
+  // Get sample mappings (for diagnostic output)
+  const std::vector<SampleMapping>& GetSampleMappings() const {
+    return sample_mappings_;
+  }
+  
  private:
   SamplePlayer* sample_player_;
   uint32_t sample_rate_;
