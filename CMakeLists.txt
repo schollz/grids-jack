@@ -41,12 +41,18 @@ target_link_libraries(grids-jack
 # Add compiler flags from pkg-config
 target_compile_options(grids-jack PUBLIC ${JACK_CFLAGS_OTHER} ${SNDFILE_CFLAGS_OTHER})
 
+# Enable testing
+enable_testing()
+
 # Test executables (don't require JACK server to be running)
 add_executable(test_sample_bank test_sample_bank.cpp sample_bank.cpp)
 target_link_libraries(test_sample_bank ${SNDFILE_LIBRARIES})
+add_test(NAME test_sample_bank COMMAND test_sample_bank)
 
 add_executable(test_sample_player test_sample_player.cpp sample_player.cpp sample_bank.cpp)
 target_link_libraries(test_sample_player ${SNDFILE_LIBRARIES})
+add_test(NAME test_sample_player COMMAND test_sample_player)
 
 add_executable(test_sample_player_integration test_sample_player_integration.cpp sample_player.cpp sample_bank.cpp)
 target_link_libraries(test_sample_player_integration ${SNDFILE_LIBRARIES})
+add_test(NAME test_sample_player_integration COMMAND test_sample_player_integration)
