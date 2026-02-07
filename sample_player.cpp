@@ -68,11 +68,14 @@ void SamplePlayer::Trigger(uint8_t midi_note, float velocity) {
     // Find a voice slot (circular allocation with voice stealing)
     Voice& voice = voice_pool_[next_voice_index_];
     
+    // Check if we're stealing an active voice (for statistics)
+    bool was_active = voice.active;
+    
     // Initialize the voice with the sample
     voice.Init(sample->data.data(), sample->length, velocity);
     
-    // Update statistics
-    if (!voice.active) {
+    // Update statistics (only increment if this wasn't already active)
+    if (!was_active) {
         active_voice_count_++;
     }
     total_triggers_++;

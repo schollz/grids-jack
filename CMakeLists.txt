@@ -47,3 +47,6 @@ target_link_libraries(test_sample_bank ${SNDFILE_LIBRARIES})
 
 add_executable(test_sample_player test_sample_player.cpp sample_player.cpp sample_bank.cpp)
 target_link_libraries(test_sample_player ${SNDFILE_LIBRARIES})
+
+add_executable(test_sample_player_integration test_sample_player_integration.cpp sample_player.cpp sample_bank.cpp)
+target_link_libraries(test_sample_player_integration ${SNDFILE_LIBRARIES})

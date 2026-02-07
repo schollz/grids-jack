@@ -72,7 +72,8 @@ int jack_process_callback(jack_nframes_t nframes, void* arg) {
     // Process audio through sample player (generates mono output)
     g_sample_player.Process(out_left, nframes);
     
-    // Copy mono to both channels for stereo output
+    // Duplicate mono to both channels for stereo output
+    // Using memcpy as it's optimized and realtime-safe
     memcpy(out_right, out_left, nframes * sizeof(float));
     
     return 0;
