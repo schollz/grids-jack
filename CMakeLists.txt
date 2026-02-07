@@ -27,6 +27,10 @@ set(SOURCES
     main.cpp
     sample_bank.cpp
     sample_player.cpp
+    pattern_generator_wrapper.cpp
+    grids/pattern_generator.cc
+    grids/resources.cc
+    avrlib/random.cc
 )
 
 # Create executable
@@ -50,3 +54,6 @@ target_link_libraries(test_sample_player ${SNDFILE_LIBRARIES})
 
 add_executable(test_sample_player_integration test_sample_player_integration.cpp sample_player.cpp sample_bank.cpp)
 target_link_libraries(test_sample_player_integration ${SNDFILE_LIBRARIES})
+
+add_executable(test_pattern_generator test_pattern_generator.cpp sample_player.cpp sample_bank.cpp pattern_generator_wrapper.cpp grids/pattern_generator.cc grids/resources.cc avrlib/random.cc)
+target_link_libraries(test_pattern_generator ${SNDFILE_LIBRARIES})

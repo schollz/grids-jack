@@ -19,9 +19,6 @@
 
 #include "grids/pattern_generator.h"
 
-#include <avr/eeprom.h>
-#include <avr/pgmspace.h>
-
 #include "avrlib/op.h"
 
 #include "grids/resources.h"
@@ -66,7 +63,7 @@ uint8_t PatternGenerator::factory_testing_;
 /* extern */
 PatternGenerator pattern_generator;
 
-static const prog_uint8_t* drum_map[5][5] = {
+static const uint8_t* drum_map[5][5] = {
   { node_10, node_8, node_0, node_9, node_11 },
   { node_15, node_7, node_13, node_12, node_6 },
   { node_18, node_14, node_4, node_5, node_3 },
@@ -82,15 +79,15 @@ uint8_t PatternGenerator::ReadDrumMap(
     uint8_t y) {
   uint8_t i = x >> 6;
   uint8_t j = y >> 6;
-  const prog_uint8_t* a_map = drum_map[i][j];
-  const prog_uint8_t* b_map = drum_map[i + 1][j];
-  const prog_uint8_t* c_map = drum_map[i][j + 1];
-  const prog_uint8_t* d_map = drum_map[i + 1][j + 1];
+  const uint8_t* a_map = drum_map[i][j];
+  const uint8_t* b_map = drum_map[i + 1][j];
+  const uint8_t* c_map = drum_map[i][j + 1];
+  const uint8_t* d_map = drum_map[i + 1][j + 1];
   uint8_t offset = (instrument * kStepsPerPattern) + step;
-  uint8_t a = pgm_read_byte(a_map + offset);
-  uint8_t b = pgm_read_byte(b_map + offset);
-  uint8_t c = pgm_read_byte(c_map + offset);
-  uint8_t d = pgm_read_byte(d_map + offset);
+  uint8_t a = a_map[offset];
+  uint8_t b = b_map[offset];
+  uint8_t c = c_map[offset];
+  uint8_t d = d_map[offset];
   return U8Mix(U8Mix(a, b, x << 2), U8Mix(c, d, x << 2), y << 2);
 }
 
@@ -153,7 +150,7 @@ void PatternGenerator::EvaluateEuclidean() {
       euclidean_step_[i] -= length;
     }
     uint32_t step_mask = 1L << static_cast<uint32_t>(euclidean_step_[i]);
-    uint32_t pattern_bits = pgm_read_dword(lut_res_euclidean + address);
+    uint32_t pattern_bits = lut_res_euclidean[address];
     if (pattern_bits & step_mask) {
       state_ |= instrument_mask;
     }
@@ -173,18 +170,19 @@ void PatternGenerator::EvaluateEuclidean() {
 
 /* static */
 void PatternGenerator::LoadSettings() {
-  options_.unpack(eeprom_read_byte(NULL));
-  factory_testing_ = eeprom_read_byte((uint8_t*)(1)) + 1;
+  // No EEPROM on non-AVR platforms, use defaults
+  options_.output_mode = OUTPUT_MODE_DRUMS;
+  options_.clock_resolution = CLOCK_RESOLUTION_24_PPQN;
+  options_.output_clock = false;
+  options_.tap_tempo = false;
+  options_.gate_mode = false;
+  options_.swing = false;
+  factory_testing_ = 0;
 }
 
 /* static */
 void PatternGenerator::SaveSettings() {
-  eeprom_write_byte(NULL, options_.pack());
-  ++factory_testing_;
-  if (factory_testing_ >= 5) {
-    factory_testing_ = 5;
-  }
-  eeprom_write_byte((uint8_t*)(1), factory_testing_);
+  // No EEPROM on non-AVR platforms, nothing to save
 }
 
 /* static */

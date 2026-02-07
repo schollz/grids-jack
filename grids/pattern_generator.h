@@ -31,7 +31,10 @@
 #include "avrlib/base.h"
 #include "avrlib/random.h"
 
-#include "grids/hardware_config.h"
+// LED definitions for hardware (not used in JACK version)
+#define LED_BD 0x04
+#define LED_SD 0x02
+#define LED_HH 0x01
 
 namespace grids {
 
