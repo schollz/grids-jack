@@ -21,6 +21,7 @@
 #include <unistd.h>
 
 #include "sample_bank.h"
+#include "sample_player.h"
 
 // Global flag for shutdown
 static volatile bool g_should_exit = false;
@@ -30,6 +31,13 @@ static jack_client_t* g_jack_client = nullptr;
 
 // Sample bank
 static grids_jack::SampleBank g_sample_bank;
+
+// Sample player
+static grids_jack::SamplePlayer g_sample_player;
+
+// JACK output ports
+static jack_port_t* g_output_port_left = nullptr;
+static jack_port_t* g_output_port_right = nullptr;
 
 // Configuration
 struct Config {
@@ -49,13 +57,23 @@ void signal_handler(int sig) {
     g_should_exit = true;
 }
 
-// JACK process callback (stub for Phase 1)
+// JACK process callback
 int jack_process_callback(jack_nframes_t nframes, void* arg) {
     (void)arg;
-    (void)nframes;
     
-    // This will be implemented in later phases
-    // For now, just output silence
+    // Get output port buffers
+    float* out_left = (float*)jack_port_get_buffer(g_output_port_left, nframes);
+    float* out_right = (float*)jack_port_get_buffer(g_output_port_right, nframes);
+    
+    if (out_left == nullptr || out_right == nullptr) {
+        return 0;
+    }
+    
+    // Process audio through sample player (generates mono output)
+    g_sample_player.Process(out_left, nframes);
+    
+    // Copy mono to both channels for stereo output
+    memcpy(out_right, out_left, nframes * sizeof(float));
     
     return 0;
 }
@@ -99,7 +117,24 @@ bool init_jack() {
     // Register shutdown callback
     jack_on_shutdown(g_jack_client, jack_shutdown_callback, nullptr);
     
-    // Note: Port registration and activation will be added in later phases
+    // Register stereo output ports
+    g_output_port_left = jack_port_register(g_jack_client, "output_L",
+                                           JACK_DEFAULT_AUDIO_TYPE,
+                                           JackPortIsOutput, 0);
+    if (g_output_port_left == nullptr) {
+        fprintf(stderr, "Failed to register left output port\n");
+        return false;
+    }
+    
+    g_output_port_right = jack_port_register(g_jack_client, "output_R",
+                                            JACK_DEFAULT_AUDIO_TYPE,
+                                            JackPortIsOutput, 0);
+    if (g_output_port_right == nullptr) {
+        fprintf(stderr, "Failed to register right output port\n");
+        return false;
+    }
+    
+    fprintf(stderr, "Registered stereo output ports\n");
     
     return true;
 }
@@ -153,7 +188,7 @@ bool parse_args(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     fprintf(stderr, "grids-jack: JACK audio client with Grids pattern generator\n");
-    fprintf(stderr, "Phase 2: Sample Bank Implementation\n\n");
+    fprintf(stderr, "Phase 3: Voice Pool and Sample Player\n\n");
     
     // Parse command-line arguments
     if (!parse_args(argc, argv)) {
@@ -200,7 +235,20 @@ int main(int argc, char* argv[]) {
     }
     fprintf(stderr, "\n\n");
     
-    fprintf(stderr, "Press Ctrl+C to exit\n\n");
+    // Initialize sample player
+    g_sample_player.Init(&g_sample_bank, sample_rate);
+    fprintf(stderr, "Sample player initialized with %zu voice pool\n", grids_jack::kMaxVoices);
+    
+    // Activate JACK client
+    if (jack_activate(g_jack_client) != 0) {
+        fprintf(stderr, "Failed to activate JACK client\n");
+        cleanup_jack();
+        return 1;
+    }
+    
+    fprintf(stderr, "JACK client activated\n");
+    
+    fprintf(stderr, "\nPress Ctrl+C to exit\n\n");
     
     // Main loop - wait for shutdown signal
     while (!g_should_exit) {
