@@ -68,16 +68,41 @@ void PatternGeneratorWrapper::AssignSamplesToParts(
     const std::vector<uint8_t>& midi_notes) {
   sample_mappings_.clear();
   
-  for (size_t i = 0; i < midi_notes.size(); ++i) {
+  // Select 4 random samples (or fewer if less than 4 available)
+  size_t num_samples = midi_notes.size() < 4 ? midi_notes.size() : 4;
+  std::vector<uint8_t> selected_notes;
+  
+  // Create a shuffled copy of midi_notes
+  std::vector<uint8_t> shuffled = midi_notes;
+  for (size_t i = shuffled.size() - 1; i > 0; --i) {
+    size_t j = rand() % (i + 1);
+    std::swap(shuffled[i], shuffled[j]);
+  }
+  
+  // Take first num_samples from shuffled list
+  for (size_t i = 0; i < num_samples; ++i) {
+    selected_notes.push_back(shuffled[i]);
+  }
+  
+  for (size_t i = 0; i < selected_notes.size(); ++i) {
     SampleMapping mapping;
-    mapping.midi_note = midi_notes[i];
+    mapping.midi_note = selected_notes[i];
     
     // Randomly assign to a drum part (BD, SD, or HH)
     mapping.drum_part = static_cast<DrumPart>(rand() % DRUM_PART_COUNT);
     
-    // Assign random X/Y position on the Grids map
+    // Assign random X/Y position on the Grids map for triggering
     mapping.x = static_cast<uint8_t>(rand() % 256);
     mapping.y = static_cast<uint8_t>(rand() % 256);
+    
+    // Generate a random velocity pattern (32 steps)
+    // Each step is either 0 (low velocity) or 1 (high velocity)
+    for (int step = 0; step < 32; ++step) {
+      mapping.velocity_pattern[step] = static_cast<uint8_t>(rand() % 2);
+    }
+    
+    // Initialize velocity step counter
+    mapping.velocity_step = 0;
     
     sample_mappings_.push_back(mapping);
   }
@@ -132,12 +157,27 @@ void PatternGeneratorWrapper::ProcessTriggers(uint8_t state) {
       // This part has a trigger, find all samples assigned to it
       for (size_t i = 0; i < sample_mappings_.size(); ++i) {
         if (sample_mappings_[i].drum_part == static_cast<DrumPart>(part)) {
-          // Trigger the sample with default velocity
-          sample_player_->Trigger(sample_mappings_[i].midi_note, 1.0f);
+          // Evaluate velocity pattern at current step for this sample
+          bool high_velocity = EvaluateVelocityPattern(sample_mappings_[i]);
+          float velocity = high_velocity ? 1.0f : 0.1f;
+          
+          // Trigger the sample with computed velocity
+          sample_player_->Trigger(sample_mappings_[i].midi_note, velocity);
+          
+          // Step the velocity pattern forward (only when triggered)
+          sample_mappings_[i].velocity_step = 
+              (sample_mappings_[i].velocity_step + 1) % 32;
         }
       }
     }
   }
+}
+
+bool PatternGeneratorWrapper::EvaluateVelocityPattern(
+    const SampleMapping& mapping) const {
+  // Read the velocity pattern value at the current step
+  // Returns true for high velocity (pattern value is non-zero), false for low
+  return mapping.velocity_pattern[mapping.velocity_step] != 0;
 }
 
 void PatternGeneratorWrapper::SetPatternX(uint8_t x) {

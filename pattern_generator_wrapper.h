@@ -36,8 +36,10 @@ enum DrumPart {
 struct SampleMapping {
   uint8_t midi_note;
   DrumPart drum_part;
-  uint8_t x;  // X position on Grids map (0-255)
-  uint8_t y;  // Y position on Grids map (0-255)
+  uint8_t x;  // X position on Grids map for triggering (0-255)
+  uint8_t y;  // Y position on Grids map for triggering (0-255)
+  uint8_t velocity_pattern[32];  // Binary pattern: 0=low velocity, non-zero=high velocity
+  uint8_t velocity_step;  // Current step in velocity pattern (0-31)
 };
 
 class PatternGeneratorWrapper {
@@ -93,6 +95,10 @@ class PatternGeneratorWrapper {
   
   // Process triggers from pattern generator
   void ProcessTriggers(uint8_t state);
+  
+  // Evaluate velocity pattern for a sample at a specific step
+  // Returns true for high velocity (1.0), false for low velocity (0.1)
+  bool EvaluateVelocityPattern(const SampleMapping& mapping) const;
 };
 
 }  // namespace grids_jack
