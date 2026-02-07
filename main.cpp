@@ -49,8 +49,9 @@ struct Config {
     const char* sample_directory;
     float bpm;
     const char* client_name;
+    bool verbose;
     
-    Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack") {}
+    Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack"), verbose(false) {}
 };
 
 static Config g_config;
@@ -94,7 +95,7 @@ void jack_shutdown_callback(void* arg) {
     g_should_exit = true;
 }
 
-// Initialize JACK client (stub for Phase 1)
+// Initialize JACK client
 bool init_jack() {
     jack_status_t status;
     
@@ -113,9 +114,16 @@ bool init_jack() {
         fprintf(stderr, "Unique name '%s' assigned\n", actual_name);
     }
     
-    // Get sample rate
+    // Get and log sample rate and buffer size
     jack_nframes_t sample_rate = jack_get_sample_rate(g_jack_client);
+    jack_nframes_t buffer_size = jack_get_buffer_size(g_jack_client);
     fprintf(stderr, "JACK sample rate: %u Hz\n", sample_rate);
+    fprintf(stderr, "JACK buffer size: %u frames\n", buffer_size);
+    
+    if (g_config.verbose) {
+        fprintf(stderr, "JACK buffer duration: %.2f ms\n", 
+                (float)buffer_size / sample_rate * 1000.0f);
+    }
     
     // Set process callback
     if (jack_set_process_callback(g_jack_client, jack_process_callback, nullptr) != 0) {
@@ -163,13 +171,14 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  -d <path>    Sample directory (default: data)\n");
     fprintf(stderr, "  -b <bpm>     Tempo in BPM (default: 120)\n");
     fprintf(stderr, "  -n <name>    JACK client name (default: grids-jack)\n");
+    fprintf(stderr, "  -v           Verbose mode - show detailed diagnostic information\n");
     fprintf(stderr, "  -h           Show this help message\n");
 }
 
 // Parse command-line arguments
 bool parse_args(int argc, char* argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "d:b:n:h")) != -1) {
+    while ((opt = getopt(argc, argv, "d:b:n:vh")) != -1) {
         switch (opt) {
             case 'd':
                 g_config.sample_directory = optarg;
@@ -184,6 +193,9 @@ bool parse_args(int argc, char* argv[]) {
             case 'n':
                 g_config.client_name = optarg;
                 break;
+            case 'v':
+                g_config.verbose = true;
+                break;
             case 'h':
                 print_usage(argv[0]);
                 exit(0);
@@ -197,7 +209,7 @@ bool parse_args(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     fprintf(stderr, "grids-jack: JACK audio client with Grids pattern generator\n");
-    fprintf(stderr, "Phase 5: JACK Integration Complete\n\n");
+    fprintf(stderr, "Version 1.0 - Phase 6: Polishing and Testing Complete\n\n");
     
     // Parse command-line arguments
     if (!parse_args(argc, argv)) {
@@ -208,7 +220,8 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Configuration:\n");
     fprintf(stderr, "  Sample directory: %s\n", g_config.sample_directory);
     fprintf(stderr, "  BPM: %.1f\n", g_config.bpm);
-    fprintf(stderr, "  JACK client name: %s\n\n", g_config.client_name);
+    fprintf(stderr, "  JACK client name: %s\n", g_config.client_name);
+    fprintf(stderr, "  Verbose mode: %s\n\n", g_config.verbose ? "enabled" : "disabled");
     
     // Setup signal handlers for graceful shutdown
     signal(SIGINT, signal_handler);
@@ -254,7 +267,30 @@ int main(int argc, char* argv[]) {
     
     // Assign samples to drum parts with random X/Y positions
     g_pattern_generator.AssignSamplesToParts(notes);
-    fprintf(stderr, "Samples assigned to drum parts (BD, SD, HH)\n\n");
+    fprintf(stderr, "Samples assigned to drum parts (BD, SD, HH)\n");
+    
+    // In verbose mode, show detailed assignments
+    if (g_config.verbose) {
+        const std::vector<grids_jack::SampleMapping>& mappings = 
+            g_pattern_generator.GetSampleMappings();
+        fprintf(stderr, "Sample assignments (verbose):\n");
+        for (size_t i = 0; i < mappings.size(); ++i) {
+            const char* part_name = "BD";
+            if (mappings[i].drum_part == grids_jack::DRUM_PART_SD) {
+                part_name = "SD";
+            } else if (mappings[i].drum_part == grids_jack::DRUM_PART_HH) {
+                part_name = "HH";
+            }
+            fprintf(stderr, "  Note %3u -> %s (x=%3u, y=%3u)\n",
+                    mappings[i].midi_note, part_name, 
+                    mappings[i].x, mappings[i].y);
+        }
+        fprintf(stderr, "Pattern parameters: X=%u, Y=%u, Randomness=%u\n",
+                g_pattern_generator.GetPatternX(),
+                g_pattern_generator.GetPatternY(),
+                g_pattern_generator.GetRandomness());
+    }
+    fprintf(stderr, "\n");
     
     // Activate JACK client
     if (jack_activate(g_jack_client) != 0) {
