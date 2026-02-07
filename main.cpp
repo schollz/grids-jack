@@ -196,7 +196,7 @@ bool parse_args(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     fprintf(stderr, "grids-jack: JACK audio client with Grids pattern generator\n");
-    fprintf(stderr, "Phase 4: Pattern Generator Integration\n\n");
+    fprintf(stderr, "Phase 5: JACK Integration Complete\n\n");
     
     // Parse command-line arguments
     if (!parse_args(argc, argv)) {
@@ -263,6 +263,29 @@ int main(int argc, char* argv[]) {
     }
     
     fprintf(stderr, "JACK client activated\n");
+    
+    // Auto-connect to system playback ports (optional)
+    const char** ports = jack_get_ports(g_jack_client, nullptr, nullptr,
+                                       JackPortIsPhysical | JackPortIsInput);
+    if (ports != nullptr) {
+        // Connect left channel
+        if (ports[0] != nullptr) {
+            if (jack_connect(g_jack_client,
+                           jack_port_name(g_output_port_left),
+                           ports[0]) == 0) {
+                fprintf(stderr, "Auto-connected output_L to %s\n", ports[0]);
+            }
+        }
+        // Connect right channel
+        if (ports[1] != nullptr) {
+            if (jack_connect(g_jack_client,
+                           jack_port_name(g_output_port_right),
+                           ports[1]) == 0) {
+                fprintf(stderr, "Auto-connected output_R to %s\n", ports[1]);
+            }
+        }
+        jack_free(ports);
+    }
     
     fprintf(stderr, "\nPress Ctrl+C to exit\n\n");
     
