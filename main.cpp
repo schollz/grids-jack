@@ -267,12 +267,13 @@ int main(int argc, char* argv[]) {
     
     // Assign samples to drum parts with random X/Y positions
     g_pattern_generator.AssignSamplesToParts(notes);
-    fprintf(stderr, "Samples assigned to drum parts (BD, SD, HH)\n");
+    const std::vector<grids_jack::SampleMapping>& mappings = 
+        g_pattern_generator.GetSampleMappings();
+    fprintf(stderr, "Selected and assigned %zu samples to drum parts (BD, SD, HH)\n", 
+            mappings.size());
     
     // In verbose mode, show detailed assignments
     if (g_config.verbose) {
-        const std::vector<grids_jack::SampleMapping>& mappings = 
-            g_pattern_generator.GetSampleMappings();
         fprintf(stderr, "Sample assignments (verbose):\n");
         for (size_t i = 0; i < mappings.size(); ++i) {
             const char* part_name = "BD";
@@ -281,9 +282,14 @@ int main(int argc, char* argv[]) {
             } else if (mappings[i].drum_part == grids_jack::DRUM_PART_HH) {
                 part_name = "HH";
             }
-            fprintf(stderr, "  Note %3u -> %s (x=%3u, y=%3u)\n",
+            fprintf(stderr, "  Note %3u -> %s (x=%3u, y=%3u) velocity pattern: ",
                     mappings[i].midi_note, part_name, 
                     mappings[i].x, mappings[i].y);
+            // Show first 16 steps of velocity pattern (0=low, 1=high)
+            for (int step = 0; step < 16; ++step) {
+                fprintf(stderr, "%u", mappings[i].velocity_pattern[step]);
+            }
+            fprintf(stderr, "...\n");
         }
         fprintf(stderr, "Pattern parameters: X=%u, Y=%u, Randomness=%u\n",
                 g_pattern_generator.GetPatternX(),

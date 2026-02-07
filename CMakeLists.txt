@@ -58,6 +58,9 @@ target_link_libraries(test_sample_player_integration ${SNDFILE_LIBRARIES})
 add_executable(test_pattern_generator test_pattern_generator.cpp sample_player.cpp sample_bank.cpp pattern_generator_wrapper.cpp grids/pattern_generator.cc grids/resources.cc avrlib/random.cc)
 target_link_libraries(test_pattern_generator ${SNDFILE_LIBRARIES})
 
+add_executable(test_velocity test_velocity.cpp sample_player.cpp sample_bank.cpp pattern_generator_wrapper.cpp grids/pattern_generator.cc grids/resources.cc avrlib/random.cc)
+target_link_libraries(test_velocity ${SNDFILE_LIBRARIES})
+
 # Enable testing with CTest
 enable_testing()
 
@@ -71,3 +74,6 @@ add_test(NAME sample_player_integration COMMAND test_sample_player_integration)
 
 add_test(NAME pattern_generator COMMAND test_pattern_generator)
 set_tests_properties(pattern_generator PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+add_test(NAME velocity COMMAND test_velocity)
+set_tests_properties(velocity PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
