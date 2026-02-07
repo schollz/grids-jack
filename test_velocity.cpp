@@ -59,7 +59,6 @@ int main() {
   
   // Verify each sample has a velocity pattern
   fprintf(stderr, "Test 2: Verify each sample has a velocity pattern\n");
-  bool all_have_patterns = true;
   for (size_t i = 0; i < mappings.size(); ++i) {
     fprintf(stderr, "  Sample %zu (note %u): velocity pattern = ", 
             i, mappings[i].midi_note);
@@ -78,7 +77,7 @@ int main() {
       if (mappings[i].velocity_pattern[step] != 0) has_one = true;
     }
     
-    if (!has_zero && !has_one) {
+    if (!has_zero || !has_one) {
       fprintf(stderr, "  WARNING: Pattern appears to be all zeros or all ones\n");
     }
   }

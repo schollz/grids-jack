@@ -38,7 +38,7 @@ struct SampleMapping {
   DrumPart drum_part;
   uint8_t x;  // X position on Grids map for triggering (0-255)
   uint8_t y;  // Y position on Grids map for triggering (0-255)
-  uint8_t velocity_pattern[32];  // Binary pattern: 0=low velocity, non-zero=high velocity
+  uint8_t velocity_pattern[32];  // Binary pattern: 0=low velocity, 1=high velocity
   uint8_t velocity_step;  // Current step in velocity pattern (0-31)
 };
 
