@@ -319,6 +319,10 @@ For optimal performance:
 
 Lower buffer sizes (128 frames) work but require more CPU. Higher buffer sizes (1024 frames) reduce CPU but increase latency.
 
+### Detailed Performance Testing
+
+For comprehensive performance testing, profiling, and optimization guidance, see **[PERFORMANCE.md](PERFORMANCE.md)**.
+
 ### Monitoring Performance
 
 **Check for xruns** (buffer underruns):
