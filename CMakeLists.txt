@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.10)
+project(grids-jack VERSION 1.0 LANGUAGES CXX)
+
+# Set C++11 standard
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Compiler flags for realtime safety warnings
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+
+# Find JACK library
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JACK REQUIRED jack)
+
+# Find libsndfile
+pkg_check_modules(SNDFILE REQUIRED sndfile)
+
+# Include directories
+include_directories(
+    ${CMAKE_SOURCE_DIR}
+    ${JACK_INCLUDE_DIRS}
+    ${SNDFILE_INCLUDE_DIRS}
+)
+
+# Source files
+set(SOURCES
+    main.cpp
+)
+
+# Create executable
+add_executable(grids-jack ${SOURCES})
+
+# Link libraries
+target_link_libraries(grids-jack
+    ${JACK_LIBRARIES}
+    ${SNDFILE_LIBRARIES}
+)
+
+# Add compiler flags from pkg-config
+target_compile_options(grids-jack PUBLIC ${JACK_CFLAGS_OTHER} ${SNDFILE_CFLAGS_OTHER})
