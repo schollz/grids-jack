@@ -25,19 +25,19 @@
 
 namespace grids {
 
-static const prog_char str_res_dummy[] PROGMEM = "dummy";
+static const char str_res_dummy[] = "dummy";
 
 
-const prog_char* const string_table[] = {
+const char* const string_table[] = {
   str_res_dummy,
 };
 
 
 
-const prog_uint16_t* const lookup_table_table[] = {
+const uint16_t* const lookup_table_table[] = {
 };
 
-const prog_uint32_t lut_res_euclidean[] PROGMEM = {
+const uint32_t lut_res_euclidean[] = {
        0,      0,      0,      0,      0,      0,      0,      0,
        0,      0,      0,      0,      0,      0,      0,      0,
        1,      1,      1,      1,      1,      1,      1,      1,
@@ -167,7 +167,7 @@ const prog_uint32_t lut_res_euclidean[] PROGMEM = {
   1432005293, 1521310381, 1801115309, 2913840557, 3067833773, 3067983581, 3145133789, 3722304989,
   3740236733, 4018007933, 4159684349, 4261281277, 4290768893, 4294836221, 4294967293, 4294967295,
 };
-const prog_uint32_t lut_res_tempo_phase_increment[] PROGMEM = {
+const uint32_t lut_res_tempo_phase_increment[] = {
        0,  35791,  71582, 107374, 143165, 178956, 214748, 250539,
   286331, 322122, 357913, 393705, 429496, 465288, 501079, 536870,
   572662, 608453, 644245, 680036, 715827, 751619, 787410, 823202,
@@ -235,12 +235,12 @@ const prog_uint32_t lut_res_tempo_phase_increment[] PROGMEM = {
 };
 
 
-const prog_uint32_t* const lookup_table32_table[] = {
+const uint32_t* const lookup_table32_table[] = {
   lut_res_euclidean,
   lut_res_tempo_phase_increment,
 };
 
-const prog_uint8_t node_0[] PROGMEM = {
+const uint8_t node_0[] = {
      255,      0,      0,      0,      0,      0,    145,      0,
        0,      0,      0,      0,    218,      0,      0,      0,
       72,      0,     36,      0,    182,      0,      0,      0,
@@ -254,7 +254,7 @@ const prog_uint8_t node_0[] PROGMEM = {
      170,      0,    113,      0,    226,      0,     28,      0,
      170,      0,    113,      0,    198,      0,     85,      0,
 };
-const prog_uint8_t node_1[] PROGMEM = {
+const uint8_t node_1[] = {
      229,      0,     25,      0,    102,      0,     25,      0,
      204,      0,     25,      0,     76,      0,      8,      0,
      255,      0,      8,      0,     51,      0,     25,      0,
@@ -268,7 +268,7 @@ const prog_uint8_t node_1[] PROGMEM = {
      159,      0,    127,      0,    255,      0,     31,      0,
      159,      0,    127,      0,    223,      0,     95,      0,
 };
-const prog_uint8_t node_2[] PROGMEM = {
+const uint8_t node_2[] = {
      255,      0,      0,      0,    127,      0,      0,      0,
        0,      0,    102,      0,      0,      0,    229,      0,
        0,      0,    178,      0,    204,      0,      0,      0,
@@ -282,7 +282,7 @@ const prog_uint8_t node_2[] PROGMEM = {
      212,      0,    170,      0,    191,      0,    170,      0,
       85,      0,     42,      0,    233,      0,     21,      0,
 };
-const prog_uint8_t node_3[] PROGMEM = {
+const uint8_t node_3[] = {
      255,      0,    212,      0,     63,      0,      0,      0,
      106,      0,    148,      0,     85,      0,    127,      0,
      191,      0,     21,      0,    233,      0,      0,      0,
@@ -296,7 +296,7 @@ const prog_uint8_t node_3[] PROGMEM = {
      185,      0,     69,      0,     46,      0,     46,      0,
      162,      0,     23,      0,    208,      0,     46,      0,
 };
-const prog_uint8_t node_4[] PROGMEM = {
+const uint8_t node_4[] = {
      255,      0,     31,      0,     63,      0,     63,      0,
      127,      0,     95,      0,    191,      0,     63,      0,
      223,      0,     31,      0,    159,      0,     63,      0,
@@ -310,7 +310,7 @@ const prog_uint8_t node_4[] PROGMEM = {
       76,      0,     51,      0,    229,      0,    127,      0,
      153,      0,     51,      0,    178,      0,    102,      0,
 };
-const prog_uint8_t node_5[] PROGMEM = {
+const uint8_t node_5[] = {
      255,      0,     51,      0,     25,      0,     76,      0,
        0,      0,      0,      0,    102,      0,      0,      0,
      204,      0,    229,      0,      0,      0,    178,      0,
@@ -324,7 +324,7 @@ const prog_uint8_t node_5[] PROGMEM = {
      153,      0,    102,      0,    255,      0,     25,      0,
      127,      0,     51,      0,    204,      0,     51,      0,
 };
-const prog_uint8_t node_6[] PROGMEM = {
+const uint8_t node_6[] = {
      255,      0,      0,      0,    223,      0,      0,      0,
       31,      0,      8,      0,    127,      0,      0,      0,
       95,      0,      0,      0,    159,      0,      0,      0,
@@ -338,7 +338,7 @@ const prog_uint8_t node_6[] PROGMEM = {
      170,      0,     56,      0,     85,      0,     28,      0,
      170,      0,     28,      0,    113,      0,     56,      0,
 };
-const prog_uint8_t node_7[] PROGMEM = {
+const uint8_t node_7[] = {
      223,      0,      0,      0,     63,      0,      0,      0,
       95,      0,      0,      0,    223,      0,     31,      0,
      255,      0,      0,      0,    159,      0,      0,      0,
@@ -352,7 +352,7 @@ const prog_uint8_t node_7[] PROGMEM = {
      255,      0,     36,      0,    182,      0,     36,      0,
      182,      0,      0,      0,    109,      0,      0,      0,
 };
-const prog_uint8_t node_8[] PROGMEM = {
+const uint8_t node_8[] = {
      255,      0,      0,      0,    218,      0,      0,      0,
       36,      0,      0,      0,    218,      0,      0,      0,
      182,      0,    109,      0,    255,      0,      0,      0,
@@ -366,7 +366,7 @@ const prog_uint8_t node_8[] PROGMEM = {
      159,      0,     31,      0,     63,      0,     31,      0,
      223,      0,    223,      0,    191,      0,    191,      0,
 };
-const prog_uint8_t node_9[] PROGMEM = {
+const uint8_t node_9[] = {
      226,      0,     28,      0,     28,      0,    141,      0,
        8,      0,      8,      0,    255,      0,      8,      0,
      113,      0,     28,      0,    198,      0,     85,      0,
@@ -380,7 +380,7 @@ const prog_uint8_t node_9[] PROGMEM = {
      231,      0,     69,      0,    255,      0,    162,      0,
      139,      0,    115,      0,    231,      0,     92,      0,
 };
-const prog_uint8_t node_10[] PROGMEM = {
+const uint8_t node_10[] = {
      145,      0,      0,      0,      0,      0,    109,      0,
        0,      0,      0,      0,    255,      0,    109,      0,
       72,      0,    218,      0,      0,      0,      0,      0,
@@ -394,7 +394,7 @@ const prog_uint8_t node_10[] PROGMEM = {
      218,      0,      0,      0,     72,      0,      0,      0,
      182,      0,     72,      0,    182,      0,     36,      0,
 };
-const prog_uint8_t node_11[] PROGMEM = {
+const uint8_t node_11[] = {
      255,      0,      0,      0,      0,      0,      0,      0,
        0,      0,      0,      0,      0,      0,      0,      0,
      255,      0,      0,      0,    218,      0,     72,     36,
@@ -408,7 +408,7 @@ const prog_uint8_t node_11[] PROGMEM = {
      182,      0,    109,      0,    255,      0,     72,      0,
      182,    109,     36,    109,    255,    109,    109,      0,
 };
-const prog_uint8_t node_12[] PROGMEM = {
+const uint8_t node_12[] = {
      255,      0,      0,      0,    255,      0,    191,      0,
        0,      0,      0,      0,     95,      0,     63,      0,
       31,      0,      0,      0,    223,      0,    223,      0,
@@ -422,7 +422,7 @@ const prog_uint8_t node_12[] PROGMEM = {
      191,      0,     21,      0,    170,      0,      8,      0,
      170,      0,    127,      0,    148,      0,    148,      0,
 };
-const prog_uint8_t node_13[] PROGMEM = {
+const uint8_t node_13[] = {
      255,      0,      0,      0,      0,      0,     63,      0,
      191,      0,     95,      0,     31,      0,    223,      0,
      255,      0,     63,      0,     95,      0,     63,      0,
@@ -436,7 +436,7 @@ const prog_uint8_t node_13[] PROGMEM = {
      185,      0,     92,      0,    185,      0,     46,      0,
      162,      0,     69,      0,    162,      0,     23,      0,
 };
-const prog_uint8_t node_14[] PROGMEM = {
+const uint8_t node_14[] = {
      255,      0,      0,      0,     51,      0,      0,      0,
        0,      0,      0,      0,    102,      0,      0,      0,
      204,      0,      0,      0,    153,      0,      0,      0,
@@ -450,7 +450,7 @@ const prog_uint8_t node_14[] PROGMEM = {
      255,      0,      8,      0,    170,      0,      0,      0,
      127,      0,      0,      0,     42,      0,      8,      0,
 };
-const prog_uint8_t node_15[] PROGMEM = {
+const uint8_t node_15[] = {
      255,      0,      0,      0,      0,      0,      0,      0,
       36,      0,      0,      0,    182,      0,      0,      0,
      218,      0,      0,      0,      0,      0,      0,      0,
@@ -464,7 +464,7 @@ const prog_uint8_t node_15[] PROGMEM = {
      170,      0,      0,      0,    141,      0,      0,      0,
      113,      0,      0,      0,     85,     85,     85,     85,
 };
-const prog_uint8_t node_16[] PROGMEM = {
+const uint8_t node_16[] = {
      255,      0,      0,      0,      0,      0,     95,      0,
        0,      0,    127,      0,      0,      0,      0,      0,
      223,      0,     95,      0,     63,      0,     31,      0,
@@ -478,7 +478,7 @@ const prog_uint8_t node_16[] PROGMEM = {
      255,      0,      0,      0,    226,      0,      0,      0,
      198,      0,     56,      0,    170,      0,     85,      0,
 };
-const prog_uint8_t node_17[] PROGMEM = {
+const uint8_t node_17[] = {
      255,      0,      0,      0,      8,      0,      0,      0,
      182,      0,      0,      0,     72,      0,      0,      0,
      218,      0,      0,      0,     36,      0,      0,      0,
@@ -492,7 +492,7 @@ const prog_uint8_t node_17[] PROGMEM = {
       56,     28,    255,      0,      0,      0,      0,      0,
      198,      0,      0,      0,    226,      0,      0,      0,
 };
-const prog_uint8_t node_18[] PROGMEM = {
+const uint8_t node_18[] = {
      255,      0,      8,      0,     28,      0,     28,      0,
      198,      0,     56,      0,     56,      0,     85,      0,
      255,      0,     85,      0,    113,      0,    113,      0,
@@ -506,7 +506,7 @@ const prog_uint8_t node_18[] PROGMEM = {
        0,      0,    212,      0,     42,      0,    170,      0,
        0,      0,    127,      0,      0,      0,      0,      0,
 };
-const prog_uint8_t node_19[] PROGMEM = {
+const uint8_t node_19[] = {
      255,      0,      0,      0,      0,      0,    218,      0,
      182,      0,      0,      0,      0,      0,    145,      0,
      145,      0,     36,      0,      0,      0,    109,      0,
@@ -520,7 +520,7 @@ const prog_uint8_t node_19[] PROGMEM = {
        0,      0,      0,      0,    170,      0,     56,      0,
      198,      0,      0,      0,    113,      0,     28,      0,
 };
-const prog_uint8_t node_20[] PROGMEM = {
+const uint8_t node_20[] = {
      255,      0,      0,      0,    113,      0,      0,      0,
      198,      0,     56,      0,     85,      0,     28,      0,
      255,      0,      0,      0,    226,      0,      0,      0,
@@ -534,7 +534,7 @@ const prog_uint8_t node_20[] PROGMEM = {
       72,      0,     72,      0,    218,      0,      0,      0,
      109,      0,    109,      0,    255,      0,      0,      0,
 };
-const prog_uint8_t node_21[] PROGMEM = {
+const uint8_t node_21[] = {
      255,      0,      0,      0,    218,      0,      0,      0,
      145,      0,      0,      0,     36,      0,      0,      0,
      218,      0,      0,      0,     36,      0,      0,      0,
@@ -548,7 +548,7 @@ const prog_uint8_t node_21[] PROGMEM = {
      145,      0,    182,      0,    255,      0,      0,      0,
       36,      0,     36,      0,    218,      0,      8,      0,
 };
-const prog_uint8_t node_22[] PROGMEM = {
+const uint8_t node_22[] = {
      255,      0,      0,      0,     42,      0,      0,      0,
      212,      0,      0,      0,      8,      0,    212,      0,
      170,      0,      0,      0,     85,      0,      0,      0,
@@ -562,7 +562,7 @@ const prog_uint8_t node_22[] PROGMEM = {
        0,      0,    170,      0,      0,      0,    141,      0,
       28,      0,     28,      0,    198,      0,     28,      0,
 };
-const prog_uint8_t node_23[] PROGMEM = {
+const uint8_t node_23[] = {
      255,      0,      0,      0,    229,      0,      0,      0,
      204,      0,    204,      0,      0,      0,     76,      0,
      178,      0,    153,      0,     51,      0,    178,      0,
@@ -576,7 +576,7 @@ const prog_uint8_t node_23[] PROGMEM = {
      204,      0,    204,      0,    153,    153,    153,    153,
      153,      0,      0,      0,    102,    102,    102,    102,
 };
-const prog_uint8_t node_24[] PROGMEM = {
+const uint8_t node_24[] = {
      170,      0,      0,      0,      0,    255,      0,      0,
      198,      0,      0,      0,      0,     28,      0,      0,
      141,      0,      0,      0,      0,    226,      0,      0,
@@ -592,7 +592,7 @@ const prog_uint8_t node_24[] PROGMEM = {
 };
 
 
-const prog_uint8_t* const node_table[] = {
+const uint8_t* const node_table[] = {
   node_0,
   node_1,
   node_2,

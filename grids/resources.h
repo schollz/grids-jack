@@ -27,8 +27,6 @@
 
 #include "avrlib/base.h"
 
-#include <avr/pgmspace.h>
-
 
 #include "avrlib/resources_manager.h"
 
@@ -36,41 +34,41 @@ namespace grids {
 
 typedef uint8_t ResourceId;
 
-extern const prog_char* const string_table[];
+extern const char* const string_table[];
 
-extern const prog_uint16_t* const lookup_table_table[];
+extern const uint16_t* const lookup_table_table[];
 
-extern const prog_uint32_t* const lookup_table32_table[];
+extern const uint32_t* const lookup_table32_table[];
 
-extern const prog_uint8_t* const node_table[];
+extern const uint8_t* const node_table[];
 
-extern const prog_uint32_t lut_res_euclidean[] PROGMEM;
-extern const prog_uint32_t lut_res_tempo_phase_increment[] PROGMEM;
-extern const prog_uint8_t node_0[] PROGMEM;
-extern const prog_uint8_t node_1[] PROGMEM;
-extern const prog_uint8_t node_2[] PROGMEM;
-extern const prog_uint8_t node_3[] PROGMEM;
-extern const prog_uint8_t node_4[] PROGMEM;
-extern const prog_uint8_t node_5[] PROGMEM;
-extern const prog_uint8_t node_6[] PROGMEM;
-extern const prog_uint8_t node_7[] PROGMEM;
-extern const prog_uint8_t node_8[] PROGMEM;
-extern const prog_uint8_t node_9[] PROGMEM;
-extern const prog_uint8_t node_10[] PROGMEM;
-extern const prog_uint8_t node_11[] PROGMEM;
-extern const prog_uint8_t node_12[] PROGMEM;
-extern const prog_uint8_t node_13[] PROGMEM;
-extern const prog_uint8_t node_14[] PROGMEM;
-extern const prog_uint8_t node_15[] PROGMEM;
-extern const prog_uint8_t node_16[] PROGMEM;
-extern const prog_uint8_t node_17[] PROGMEM;
-extern const prog_uint8_t node_18[] PROGMEM;
-extern const prog_uint8_t node_19[] PROGMEM;
-extern const prog_uint8_t node_20[] PROGMEM;
-extern const prog_uint8_t node_21[] PROGMEM;
-extern const prog_uint8_t node_22[] PROGMEM;
-extern const prog_uint8_t node_23[] PROGMEM;
-extern const prog_uint8_t node_24[] PROGMEM;
+extern const uint32_t lut_res_euclidean[];
+extern const uint32_t lut_res_tempo_phase_increment[];
+extern const uint8_t node_0[];
+extern const uint8_t node_1[];
+extern const uint8_t node_2[];
+extern const uint8_t node_3[];
+extern const uint8_t node_4[];
+extern const uint8_t node_5[];
+extern const uint8_t node_6[];
+extern const uint8_t node_7[];
+extern const uint8_t node_8[];
+extern const uint8_t node_9[];
+extern const uint8_t node_10[];
+extern const uint8_t node_11[];
+extern const uint8_t node_12[];
+extern const uint8_t node_13[];
+extern const uint8_t node_14[];
+extern const uint8_t node_15[];
+extern const uint8_t node_16[];
+extern const uint8_t node_17[];
+extern const uint8_t node_18[];
+extern const uint8_t node_19[];
+extern const uint8_t node_20[];
+extern const uint8_t node_21[];
+extern const uint8_t node_22[];
+extern const uint8_t node_23[];
+extern const uint8_t node_24[];
 #define STR_RES_DUMMY 0  // dummy
 #define LUT_RES_EUCLIDEAN 0
 #define LUT_RES_EUCLIDEAN_SIZE 1024
@@ -126,11 +124,13 @@ extern const prog_uint8_t node_24[] PROGMEM;
 #define NODE_23_SIZE 96
 #define NODE_24 24
 #define NODE_24_SIZE 96
-typedef avrlib::ResourcesManager<
-    ResourceId,
-    avrlib::ResourcesTables<
-        string_table,
-        lookup_table_table> > ResourcesManager; 
+
+// ResourcesManager not used in pattern generation
+// typedef avrlib::ResourcesManager<
+//     ResourceId,
+//     avrlib::ResourcesTables<
+//         string_table,
+//         lookup_table_table> > ResourcesManager; 
 
 }  // namespace grids
 

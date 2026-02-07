@@ -22,6 +22,7 @@
 
 #include "sample_bank.h"
 #include "sample_player.h"
+#include "pattern_generator_wrapper.h"
 
 // Global flag for shutdown
 static volatile bool g_should_exit = false;
@@ -34,6 +35,9 @@ static grids_jack::SampleBank g_sample_bank;
 
 // Sample player
 static grids_jack::SamplePlayer g_sample_player;
+
+// Pattern generator wrapper
+static grids_jack::PatternGeneratorWrapper g_pattern_generator;
 
 // JACK output ports
 static jack_port_t* g_output_port_left = nullptr;
@@ -68,6 +72,9 @@ int jack_process_callback(jack_nframes_t nframes, void* arg) {
     if (out_left == nullptr || out_right == nullptr) {
         return 0;
     }
+    
+    // Process pattern generator to generate triggers
+    g_pattern_generator.Process(nframes);
     
     // Process audio through sample player (generates mono output)
     g_sample_player.Process(out_left, nframes);
@@ -189,7 +196,7 @@ bool parse_args(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
     fprintf(stderr, "grids-jack: JACK audio client with Grids pattern generator\n");
-    fprintf(stderr, "Phase 3: Voice Pool and Sample Player\n\n");
+    fprintf(stderr, "Phase 4: Pattern Generator Integration\n\n");
     
     // Parse command-line arguments
     if (!parse_args(argc, argv)) {
@@ -239,6 +246,14 @@ int main(int argc, char* argv[]) {
     // Initialize sample player
     g_sample_player.Init(&g_sample_bank, sample_rate);
     fprintf(stderr, "Sample player initialized with %zu voice pool\n", grids_jack::kMaxVoices);
+    
+    // Initialize pattern generator
+    g_pattern_generator.Init(&g_sample_player, sample_rate, g_config.bpm);
+    fprintf(stderr, "Pattern generator initialized at %.1f BPM\n", g_config.bpm);
+    
+    // Assign samples to drum parts with random X/Y positions
+    g_pattern_generator.AssignSamplesToParts(notes);
+    fprintf(stderr, "Samples assigned to drum parts (BD, SD, HH)\n\n");
     
     // Activate JACK client
     if (jack_activate(g_jack_client) != 0) {

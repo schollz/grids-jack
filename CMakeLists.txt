@@ -27,6 +27,10 @@ set(SOURCES
     main.cpp
     sample_bank.cpp
     sample_player.cpp
+    pattern_generator_wrapper.cpp
+    grids/pattern_generator.cc
+    grids/resources.cc
+    avrlib/random.cc
 )
 
 # Create executable
