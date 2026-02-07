@@ -53,10 +53,11 @@ struct Config {
     size_t num_parts;
     size_t num_velocity_steps;
     bool lfo_enabled;
+    float output_gain;
 
     Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack"),
                verbose(false), num_parts(4), num_velocity_steps(32),
-               lfo_enabled(false) {}
+               lfo_enabled(false), output_gain(1.0f) {}
 };
 
 static Config g_config;
@@ -85,7 +86,14 @@ int jack_process_callback(jack_nframes_t nframes, void* arg) {
     
     // Process audio through sample player (generates mono output)
     g_sample_player.Process(out_left, nframes);
-    
+
+    // Apply global output gain
+    if (g_config.output_gain != 1.0f) {
+        for (jack_nframes_t i = 0; i < nframes; i++) {
+            out_left[i] *= g_config.output_gain;
+        }
+    }
+
     // Duplicate mono to both channels for stereo output
     // Using memcpy as it's optimized and realtime-safe
     memcpy(out_right, out_left, nframes * sizeof(float));
@@ -178,6 +186,7 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  -n <name>    JACK client name (default: grids-jack)\n");
     fprintf(stderr, "  -s <steps>   Velocity pattern steps per sample (default: 32)\n");
     fprintf(stderr, "  -p <parts>   Number of random samples to select (default: 4)\n");
+    fprintf(stderr, "  -o <gain>    Global output volume scaling (default: 1.0)\n");
     fprintf(stderr, "  -l           Enable LFO drift of x/y pattern positions\n");
     fprintf(stderr, "  -v           Verbose mode - show detailed diagnostic information\n");
     fprintf(stderr, "  -h           Show this help message\n");
@@ -186,7 +195,7 @@ void print_usage(const char* program_name) {
 // Parse command-line arguments
 bool parse_args(int argc, char* argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "d:b:n:s:p:lvh")) != -1) {
+    while ((opt = getopt(argc, argv, "d:b:n:s:p:o:lvh")) != -1) {
         switch (opt) {
             case 'd':
                 g_config.sample_directory = optarg;
@@ -219,6 +228,13 @@ bool parse_args(int argc, char* argv[]) {
                 g_config.num_parts = static_cast<size_t>(val);
                 break;
             }
+            case 'o':
+                g_config.output_gain = atof(optarg);
+                if (g_config.output_gain < 0.0f) {
+                    fprintf(stderr, "Error: Output gain must be >= 0\n");
+                    return false;
+                }
+                break;
             case 'l':
                 g_config.lfo_enabled = true;
                 break;
@@ -276,6 +292,7 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "  JACK client name: %s\n", g_config.client_name);
     fprintf(stderr, "  Random parts: %zu\n", g_config.num_parts);
     fprintf(stderr, "  Velocity steps: %zu\n", g_config.num_velocity_steps);
+    fprintf(stderr, "  Output gain: %.2f\n", g_config.output_gain);
     fprintf(stderr, "  LFO drift: %s\n", g_config.lfo_enabled ? "enabled" : "disabled");
     fprintf(stderr, "  Verbose mode: %s\n\n", g_config.verbose ? "enabled" : "disabled");
     
