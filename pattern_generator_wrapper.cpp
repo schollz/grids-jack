@@ -38,7 +38,13 @@ PatternGeneratorWrapper::PatternGeneratorWrapper()
       frames_per_pulse_(0),
       pending_pattern_x_(0),
       pending_pattern_y_(0),
-      pattern_changed_(false) {
+      pattern_changed_(false),
+      humanize_amount_(0.0f),
+      humanize_max_frames_(0),
+      humanize_rng_state_(0) {
+  for (size_t i = 0; i < kMaxPendingTriggers; ++i) {
+    pending_triggers_[i].active = false;
+  }
 }
 
 PatternGeneratorWrapper::~PatternGeneratorWrapper() {
@@ -81,6 +87,9 @@ void PatternGeneratorWrapper::Init(SamplePlayer* sample_player,
   pattern_changed_ = false;
 
   UpdateFramesPerPulse();
+
+  // Seed humanize RNG
+  humanize_rng_state_ = static_cast<uint32_t>(rand());
 }
 
 void PatternGeneratorWrapper::AssignSamplesToParts(
@@ -154,12 +163,60 @@ void PatternGeneratorWrapper::UpdateFramesPerPulse() {
       static_cast<float>(sample_rate_) / pulses_per_second);
 }
 
+void PatternGeneratorWrapper::SetHumanize(float amount) {
+  humanize_amount_ = amount;
+  // Half a step = 1.5 pulses (kPulsesPerStep=3, so half = 1.5)
+  humanize_max_frames_ = static_cast<uint32_t>(amount * 1.5f * frames_per_pulse_);
+  // Pre-advance clock so jitter is centered around the original grid position
+  if (humanize_max_frames_ > 0) {
+    frames_since_last_tick_ += humanize_max_frames_;
+  }
+}
+
+uint32_t PatternGeneratorWrapper::HumanizeRand() {
+  humanize_rng_state_ = humanize_rng_state_ * 1664525u + 1013904223u;
+  return humanize_rng_state_;
+}
+
+void PatternGeneratorWrapper::QueueHumanizedTrigger(uint8_t midi_note,
+                                                     float velocity) {
+  for (size_t i = 0; i < kMaxPendingTriggers; ++i) {
+    if (!pending_triggers_[i].active) {
+      pending_triggers_[i].midi_note = midi_note;
+      pending_triggers_[i].velocity = velocity;
+      pending_triggers_[i].delay_frames =
+          static_cast<int32_t>(HumanizeRand() % (2 * humanize_max_frames_ + 1));
+      pending_triggers_[i].active = true;
+      return;
+    }
+  }
+  // Queue full - fire immediately
+  sample_player_->Trigger(midi_note, velocity);
+}
+
+void PatternGeneratorWrapper::ProcessPendingTriggers() {
+  for (size_t i = 0; i < kMaxPendingTriggers; ++i) {
+    if (pending_triggers_[i].active) {
+      if (--pending_triggers_[i].delay_frames <= 0) {
+        sample_player_->Trigger(pending_triggers_[i].midi_note,
+                                pending_triggers_[i].velocity);
+        pending_triggers_[i].active = false;
+      }
+    }
+  }
+}
+
 void PatternGeneratorWrapper::Process(uint32_t num_frames) {
   if (sample_player_ == nullptr) {
     return;
   }
   
   for (uint32_t i = 0; i < num_frames; ++i) {
+    // Process pending humanized triggers
+    if (humanize_max_frames_ > 0) {
+      ProcessPendingTriggers();
+    }
+
     frames_since_last_tick_++;
 
     // Check if it's time for the next pulse
@@ -222,7 +279,11 @@ void PatternGeneratorWrapper::ProcessTriggers(uint8_t state) {
           float velocity = high_velocity ? 1.0f : 0.1f;
           
           // Trigger the sample with computed velocity
-          sample_player_->Trigger(sample_mappings_[i].midi_note, velocity);
+          if (humanize_max_frames_ > 0) {
+            QueueHumanizedTrigger(sample_mappings_[i].midi_note, velocity);
+          } else {
+            sample_player_->Trigger(sample_mappings_[i].midi_note, velocity);
+          }
           
           // Step the velocity pattern forward (only when triggered)
           sample_mappings_[i].velocity_step =

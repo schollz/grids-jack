@@ -54,10 +54,11 @@ struct Config {
     size_t num_velocity_steps;
     bool lfo_enabled;
     float output_gain;
+    float humanize;
 
     Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack"),
                verbose(false), num_parts(4), num_velocity_steps(32),
-               lfo_enabled(false), output_gain(1.0f) {}
+               lfo_enabled(false), output_gain(1.0f), humanize(0.0f) {}
 };
 
 static Config g_config;
@@ -187,6 +188,7 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  -s <steps>   Velocity pattern steps per sample (default: 32)\n");
     fprintf(stderr, "  -p <parts>   Number of random samples to select (default: 4)\n");
     fprintf(stderr, "  -o <gain>    Global output volume scaling (default: 1.0)\n");
+    fprintf(stderr, "  -u <amt>     Humanize timing, 0.0-1.0 (default: 0.0)\n");
     fprintf(stderr, "  -l           Enable LFO drift of x/y pattern positions\n");
     fprintf(stderr, "  -v           Verbose mode - show detailed diagnostic information\n");
     fprintf(stderr, "  -h           Show this help message\n");
@@ -195,7 +197,7 @@ void print_usage(const char* program_name) {
 // Parse command-line arguments
 bool parse_args(int argc, char* argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "d:b:n:s:p:o:lvh")) != -1) {
+    while ((opt = getopt(argc, argv, "d:b:n:s:p:o:u:lvh")) != -1) {
         switch (opt) {
             case 'd':
                 g_config.sample_directory = optarg;
@@ -232,6 +234,13 @@ bool parse_args(int argc, char* argv[]) {
                 g_config.output_gain = atof(optarg);
                 if (g_config.output_gain < 0.0f) {
                     fprintf(stderr, "Error: Output gain must be >= 0\n");
+                    return false;
+                }
+                break;
+            case 'u':
+                g_config.humanize = atof(optarg);
+                if (g_config.humanize < 0.0f || g_config.humanize > 1.0f) {
+                    fprintf(stderr, "Error: Humanize amount must be between 0.0 and 1.0\n");
                     return false;
                 }
                 break;
@@ -293,6 +302,7 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "  Random parts: %zu\n", g_config.num_parts);
     fprintf(stderr, "  Velocity steps: %zu\n", g_config.num_velocity_steps);
     fprintf(stderr, "  Output gain: %.2f\n", g_config.output_gain);
+    fprintf(stderr, "  Humanize: %.2f\n", g_config.humanize);
     fprintf(stderr, "  LFO drift: %s\n", g_config.lfo_enabled ? "enabled" : "disabled");
     fprintf(stderr, "  Verbose mode: %s\n\n", g_config.verbose ? "enabled" : "disabled");
     
@@ -340,6 +350,11 @@ int main(int argc, char* argv[]) {
     
     // Enable LFO if configured
     g_pattern_generator.SetLfoEnabled(g_config.lfo_enabled);
+
+    // Set humanization
+    if (g_config.humanize > 0.0f) {
+        g_pattern_generator.SetHumanize(g_config.humanize);
+    }
 
     // Assign samples to drum parts with random X/Y positions
     g_pattern_generator.AssignSamplesToParts(notes, g_config.num_parts,

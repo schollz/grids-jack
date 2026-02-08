@@ -24,6 +24,15 @@
 
 namespace grids_jack {
 
+static const size_t kMaxPendingTriggers = 64;
+
+struct PendingTrigger {
+  uint8_t midi_note;
+  float velocity;
+  int32_t delay_frames;
+  bool active;
+};
+
 // Drum part types from Grids
 enum DrumPart {
   DRUM_PART_BD = 0,  // Bass Drum
@@ -85,6 +94,10 @@ class PatternGeneratorWrapper {
   void SetLfoEnabled(bool enabled) { lfo_enabled_ = enabled; }
   bool GetLfoEnabled() const { return lfo_enabled_; }
 
+  // Set humanization amount (0.0 = none, 1.0 = max jitter of half a step)
+  void SetHumanize(float amount);
+  float GetHumanize() const { return humanize_amount_; }
+
   // Print the current pattern to stderr
   void PrintCurrentPattern();
 
@@ -136,6 +149,16 @@ class PatternGeneratorWrapper {
   // Evaluate velocity pattern for a sample at a specific step
   // Returns true for high velocity (1.0), false for low velocity (0.1)
   bool EvaluateVelocityPattern(const SampleMapping& mapping) const;
+
+  // Humanization
+  float humanize_amount_;
+  uint32_t humanize_max_frames_;
+  PendingTrigger pending_triggers_[kMaxPendingTriggers];
+  uint32_t humanize_rng_state_;
+
+  uint32_t HumanizeRand();
+  void QueueHumanizedTrigger(uint8_t midi_note, float velocity);
+  void ProcessPendingTriggers();
 };
 
 }  // namespace grids_jack
