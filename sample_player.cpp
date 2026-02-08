@@ -15,7 +15,12 @@
 
 #include "sample_player.h"
 
+#include <cmath>
 #include <cstring>  // for memset
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace grids_jack {
 
@@ -48,31 +53,37 @@ void SamplePlayer::Init(const SampleBank* bank, uint32_t sample_rate) {
     }
 }
 
-void SamplePlayer::Trigger(uint8_t midi_note, float velocity) {
+void SamplePlayer::Trigger(uint8_t midi_note, float velocity, float pan) {
     // REALTIME-SAFE: No allocations, no locks, no system calls
-    
+
     if (sample_bank_ == nullptr) {
         return;  // Not initialized
     }
-    
+
     // Look up the sample
     const Sample* sample = sample_bank_->GetSample(midi_note);
     if (sample == nullptr || sample->data.empty()) {
         return;  // Sample not found or empty
     }
-    
+
     // Clamp velocity to valid range
     if (velocity < 0.0f) velocity = 0.0f;
     if (velocity > 1.0f) velocity = 1.0f;
-    
+
+    // Compute equal-power pan gains
+    // theta maps pan [-1,1] to [0, PI/2]
+    float theta = (pan + 1.0f) * 0.25f * static_cast<float>(M_PI);
+    float left_gain = cosf(theta);
+    float right_gain = sinf(theta);
+
     // Find a voice slot (circular allocation with voice stealing)
     Voice& voice = voice_pool_[next_voice_index_];
-    
+
     // Check if we're stealing an active voice (for statistics)
     bool was_active = voice.active;
-    
+
     // Initialize the voice with the sample
-    voice.Init(sample->data.data(), sample->length, velocity);
+    voice.Init(sample->data.data(), sample->length, velocity, left_gain, right_gain);
     
     // Update statistics (only increment if this wasn't already active)
     if (!was_active) {
@@ -130,6 +141,57 @@ void SamplePlayer::Process(float* output, uint32_t num_frames) {
         voice.position += frames_to_render;
         
         // If voice finished during this buffer, mark as inactive
+        if (voice.IsFinished()) {
+            voice.Reset();
+        }
+    }
+}
+
+void SamplePlayer::ProcessStereo(float* left, float* right, uint32_t num_frames) {
+    // REALTIME-SAFE: No allocations, no locks, no system calls
+
+    if (left == nullptr || right == nullptr || num_frames == 0) {
+        return;
+    }
+
+    // Clear output buffers
+    memset(left, 0, num_frames * sizeof(float));
+    memset(right, 0, num_frames * sizeof(float));
+
+    // Reset active voice count
+    active_voice_count_ = 0;
+
+    // Mix all active voices with panning
+    for (auto& voice : voice_pool_) {
+        if (!voice.active) {
+            continue;
+        }
+
+        if (voice.IsFinished()) {
+            voice.Reset();
+            continue;
+        }
+
+        active_voice_count_++;
+
+        uint32_t frames_to_render = num_frames;
+        uint32_t frames_remaining = voice.sample_length - voice.position;
+
+        if (frames_to_render > frames_remaining) {
+            frames_to_render = frames_remaining;
+        }
+
+        float gl = voice.gain * voice.pan_left;
+        float gr = voice.gain * voice.pan_right;
+
+        for (uint32_t i = 0; i < frames_to_render; i++) {
+            float s = voice.sample_data[voice.position + i];
+            left[i] += s * gl;
+            right[i] += s * gr;
+        }
+
+        voice.position += frames_to_render;
+
         if (voice.IsFinished()) {
             voice.Reset();
         }

@@ -29,6 +29,7 @@ static const size_t kMaxPendingTriggers = 64;
 struct PendingTrigger {
   uint8_t midi_note;
   float velocity;
+  float pan;
   int32_t delay_frames;
   bool active;
 };
@@ -49,6 +50,7 @@ struct SampleMapping {
   uint8_t y;  // Y position on Grids map for triggering (0-255)
   std::vector<uint8_t> velocity_pattern;  // Binary pattern: 0=low velocity, non-zero=high velocity
   uint8_t velocity_step;  // Current step in velocity pattern
+  float pan;  // Stereo pan position (-1.0 left to 1.0 right)
   // LFO state for x/y drift
   float lfo_x_phase;  // Current LFO phase for x (radians)
   float lfo_y_phase;  // Current LFO phase for y (radians)
@@ -98,6 +100,10 @@ class PatternGeneratorWrapper {
   void SetHumanize(float amount);
   float GetHumanize() const { return humanize_amount_; }
 
+  // Set stereo spread (0.0 = mono center, 1.0 = full L/R)
+  void SetSpread(float spread);
+  float GetSpread() const { return spread_; }
+
   // Print the current pattern to stderr
   void PrintCurrentPattern();
 
@@ -114,6 +120,7 @@ class PatternGeneratorWrapper {
   uint32_t sample_rate_;
   float bpm_;
   bool lfo_enabled_;
+  float spread_;
   uint8_t num_steps_;  // Pattern length (1-32)
 
   // Timing state
@@ -157,7 +164,7 @@ class PatternGeneratorWrapper {
   uint32_t humanize_rng_state_;
 
   uint32_t HumanizeRand();
-  void QueueHumanizedTrigger(uint8_t midi_note, float velocity);
+  void QueueHumanizedTrigger(uint8_t midi_note, float velocity, float pan);
   void ProcessPendingTriggers();
 };
 

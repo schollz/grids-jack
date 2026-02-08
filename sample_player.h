@@ -32,26 +32,34 @@ struct Voice {
     uint32_t sample_length;    // Length of sample in frames
     uint32_t position;         // Current playback position in frames
     float gain;                // Volume (default 1.0)
+    float pan_left;            // Left channel gain from panning
+    float pan_right;           // Right channel gain from panning
     bool active;               // Whether this voice is currently playing
-    
-    Voice() : sample_data(nullptr), sample_length(0), position(0), 
-              gain(1.0f), active(false) {}
-    
+
+    Voice() : sample_data(nullptr), sample_length(0), position(0),
+              gain(1.0f), pan_left(0.70710678f), pan_right(0.70710678f),
+              active(false) {}
+
     // Reset voice to inactive state
     void Reset() {
         sample_data = nullptr;
         sample_length = 0;
         position = 0;
         gain = 1.0f;
+        pan_left = 0.70710678f;
+        pan_right = 0.70710678f;
         active = false;
     }
-    
-    // Initialize voice with sample data
-    void Init(const float* data, uint32_t length, float velocity) {
+
+    // Initialize voice with sample data and pan gains
+    void Init(const float* data, uint32_t length, float velocity,
+              float left = 0.70710678f, float right = 0.70710678f) {
         sample_data = data;
         sample_length = length;
         position = 0;
         gain = velocity;
+        pan_left = left;
+        pan_right = right;
         active = true;
     }
     
@@ -73,13 +81,17 @@ public:
     
     // Trigger a sample to play
     // This is realtime-safe and can be called from the audio callback
-    // velocity: 0.0 to 1.0
-    void Trigger(uint8_t midi_note, float velocity);
-    
-    // Process audio for one buffer
+    // velocity: 0.0 to 1.0, pan: -1.0 (left) to 1.0 (right)
+    void Trigger(uint8_t midi_note, float velocity, float pan = 0.0f);
+
+    // Process audio for one buffer (mono)
     // This is realtime-safe and should be called from the audio callback
     // Mixes all active voices into the output buffer
     void Process(float* output, uint32_t num_frames);
+
+    // Process audio for one buffer (stereo with panning)
+    // This is realtime-safe and should be called from the audio callback
+    void ProcessStereo(float* left, float* right, uint32_t num_frames);
     
     // Get number of currently active voices
     uint32_t GetActiveVoiceCount() const { return active_voice_count_; }

@@ -55,10 +55,12 @@ struct Config {
     bool lfo_enabled;
     float output_gain;
     float humanize;
+    float spread;
 
     Config() : sample_directory("data"), bpm(120.0f), client_name("grids-jack"),
                verbose(false), num_parts(4), num_velocity_steps(32),
-               lfo_enabled(false), output_gain(1.0f), humanize(0.0f) {}
+               lfo_enabled(false), output_gain(1.0f), humanize(0.0f),
+               spread(0.0f) {}
 };
 
 static Config g_config;
@@ -85,19 +87,16 @@ int jack_process_callback(jack_nframes_t nframes, void* arg) {
     // Process pattern generator to generate triggers
     g_pattern_generator.Process(nframes);
     
-    // Process audio through sample player (generates mono output)
-    g_sample_player.Process(out_left, nframes);
+    // Process audio through sample player (stereo with panning)
+    g_sample_player.ProcessStereo(out_left, out_right, nframes);
 
     // Apply global output gain
     if (g_config.output_gain != 1.0f) {
         for (jack_nframes_t i = 0; i < nframes; i++) {
             out_left[i] *= g_config.output_gain;
+            out_right[i] *= g_config.output_gain;
         }
     }
-
-    // Duplicate mono to both channels for stereo output
-    // Using memcpy as it's optimized and realtime-safe
-    memcpy(out_right, out_left, nframes * sizeof(float));
     
     return 0;
 }
@@ -189,6 +188,7 @@ void print_usage(const char* program_name) {
     fprintf(stderr, "  -p <parts>   Number of random samples to select (default: 4)\n");
     fprintf(stderr, "  -o <gain>    Global output volume scaling (default: 1.0)\n");
     fprintf(stderr, "  -u <amt>     Humanize timing, 0.0-1.0 (default: 0.0)\n");
+    fprintf(stderr, "  -r <spread>  Stereo spread, 0.0-1.0 (default: 0.0)\n");
     fprintf(stderr, "  -l           Enable LFO drift of x/y pattern positions\n");
     fprintf(stderr, "  -v           Verbose mode - show detailed diagnostic information\n");
     fprintf(stderr, "  -h           Show this help message\n");
@@ -197,7 +197,7 @@ void print_usage(const char* program_name) {
 // Parse command-line arguments
 bool parse_args(int argc, char* argv[]) {
     int opt;
-    while ((opt = getopt(argc, argv, "d:b:n:s:p:o:u:lvh")) != -1) {
+    while ((opt = getopt(argc, argv, "d:b:n:s:p:o:u:r:lvh")) != -1) {
         switch (opt) {
             case 'd':
                 g_config.sample_directory = optarg;
@@ -241,6 +241,13 @@ bool parse_args(int argc, char* argv[]) {
                 g_config.humanize = atof(optarg);
                 if (g_config.humanize < 0.0f || g_config.humanize > 1.0f) {
                     fprintf(stderr, "Error: Humanize amount must be between 0.0 and 1.0\n");
+                    return false;
+                }
+                break;
+            case 'r':
+                g_config.spread = atof(optarg);
+                if (g_config.spread < 0.0f || g_config.spread > 1.0f) {
+                    fprintf(stderr, "Error: Spread must be between 0.0 and 1.0\n");
                     return false;
                 }
                 break;
@@ -303,6 +310,7 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "  Velocity steps: %zu\n", g_config.num_velocity_steps);
     fprintf(stderr, "  Output gain: %.2f\n", g_config.output_gain);
     fprintf(stderr, "  Humanize: %.2f\n", g_config.humanize);
+    fprintf(stderr, "  Spread: %.2f\n", g_config.spread);
     fprintf(stderr, "  LFO drift: %s\n", g_config.lfo_enabled ? "enabled" : "disabled");
     fprintf(stderr, "  Verbose mode: %s\n\n", g_config.verbose ? "enabled" : "disabled");
     
@@ -359,9 +367,14 @@ int main(int argc, char* argv[]) {
     // Assign samples to drum parts with random X/Y positions
     g_pattern_generator.AssignSamplesToParts(notes, g_config.num_parts,
                                                g_config.num_velocity_steps);
-    const std::vector<grids_jack::SampleMapping>& mappings = 
+    // Set stereo spread (assigns pan positions across mappings)
+    if (g_config.spread > 0.0f) {
+        g_pattern_generator.SetSpread(g_config.spread);
+    }
+
+    const std::vector<grids_jack::SampleMapping>& mappings =
         g_pattern_generator.GetSampleMappings();
-    fprintf(stderr, "Selected and assigned %zu samples to drum parts (BD, SD, HH)\n", 
+    fprintf(stderr, "Selected and assigned %zu samples to drum parts (BD, SD, HH)\n",
             mappings.size());
     
     // In verbose mode, show detailed assignments
@@ -374,9 +387,9 @@ int main(int argc, char* argv[]) {
             } else if (mappings[i].drum_part == grids_jack::DRUM_PART_HH) {
                 part_name = "HH";
             }
-            fprintf(stderr, "  Note %3u -> %s (x=%3u, y=%3u) velocity pattern: ",
-                    mappings[i].midi_note, part_name, 
-                    mappings[i].x, mappings[i].y);
+            fprintf(stderr, "  Note %3u -> %s (x=%3u, y=%3u, pan=%+.2f) velocity pattern: ",
+                    mappings[i].midi_note, part_name,
+                    mappings[i].x, mappings[i].y, mappings[i].pan);
             // Show first 16 steps of velocity pattern (0=low, 1=high)
             for (int step = 0; step < 16; ++step) {
                 fprintf(stderr, "%u", mappings[i].velocity_pattern[step]);
