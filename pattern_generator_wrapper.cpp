@@ -140,9 +140,9 @@ void PatternGeneratorWrapper::AssignSamplesToParts(
     // Pan will be set by SetSpread after assignment
     mapping.pan = 0.0f;
 
-    // Initialize LFO parameters with random periods (120-300 seconds)
-    float x_period = 120.0f + (float)(rand() % 18001) / 100.0f;
-    float y_period = 120.0f + (float)(rand() % 18001) / 100.0f;
+    // Initialize LFO parameters with random periods (15-45 seconds)
+    float x_period = 15.0f + (float)(rand() % 3001) / 100.0f;
+    float y_period = 15.0f + (float)(rand() % 3001) / 100.0f;
     mapping.lfo_x_freq = 2.0f * (float)M_PI / (x_period * sample_rate_);
     mapping.lfo_y_freq = 2.0f * (float)M_PI / (y_period * sample_rate_);
     mapping.lfo_x_phase = (float)(rand() % 10000) / 10000.0f * 2.0f * (float)M_PI;
